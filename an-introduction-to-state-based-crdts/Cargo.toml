@@ -1,0 +1,10 @@
+[package]
+name = "an-introduction-to-state-based-crdts"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dev-dependencies]
+fake = "2.5.0"
+proptest = "1.0.0"
