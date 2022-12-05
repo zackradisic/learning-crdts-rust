@@ -1,5 +1,3 @@
-use std::collections::BTreeMap;
-
 use crate::{grow_counter::GrowCounter, ReplicaId};
 
 #[derive(Default, Debug, Clone, PartialEq)]

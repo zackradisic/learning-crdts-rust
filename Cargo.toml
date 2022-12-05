@@ -1,5 +1,5 @@
 [workspace]
 
 members = [
-        "an-introduction-to-state-based-crdts"
+        "sypytkowski-blog"
 ]
