@@ -3,7 +3,7 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use crate::grow_counter::GrowCounter;
+use super::grow_counter::GrowCounter;
 
 #[derive(Clone, Debug)]
 pub struct VectorClock(GrowCounter);
@@ -73,7 +73,8 @@ impl PartialOrd for VectorClock {
 
 #[cfg(test)]
 mod test {
-    use crate::grow_counter::GrowCounter;
+
+    use crate::state::grow_counter::GrowCounter;
 
     use super::VectorClock;
 

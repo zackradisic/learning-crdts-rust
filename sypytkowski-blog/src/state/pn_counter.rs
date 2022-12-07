@@ -1,4 +1,6 @@
-use crate::{grow_counter::GrowCounter, ReplicaId};
+use crate::ReplicaId;
+
+use super::grow_counter::GrowCounter;
 
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct PNCounter {
@@ -43,7 +45,7 @@ mod test {
 
     use proptest::prelude::*;
 
-    use crate::{grow_counter::GrowCounter, pn_counter::PNCounter};
+    use crate::state::{grow_counter::GrowCounter, pn_counter::PNCounter};
 
     proptest! {
         #[test]

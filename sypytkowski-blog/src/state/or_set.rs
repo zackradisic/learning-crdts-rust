@@ -1,6 +1,8 @@
 use std::collections::BTreeMap;
 
-use crate::{vector_clock::VectorClock, ReplicaId};
+use crate::ReplicaId;
+
+use super::vector_clock::VectorClock;
 
 /// # Observed Remove Set
 /// allows insertion/deletion of a set while still being able

@@ -80,7 +80,7 @@ mod test {
 
     use proptest::prelude::*;
 
-    use crate::grow_counter::GrowCounter;
+    use crate::state::grow_counter::GrowCounter;
 
     proptest! {
         #[test]

@@ -1,8 +1,7 @@
-pub mod grow_counter;
-pub mod or_set;
-pub mod pn_counter;
-pub mod vector_clock;
+#![feature(option_get_or_insert_default)]
 
+pub mod delta_state;
+pub mod state;
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ReplicaId(u64);
 
