@@ -1,4 +1,5 @@
 #![feature(option_get_or_insert_default)]
+#![feature(btree_drain_filter)]
 
 pub mod delta_state;
 pub mod state;
