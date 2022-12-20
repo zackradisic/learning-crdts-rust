@@ -1,3 +1,19 @@
+//! Implementation of Dotted Version Vectors (DVV) from blog series part 3
+//!
+//! I think the blog post omits some details about DVVs so I recommend reading this paper
+//! "Dotted Version Vectors: Efficient Causality Tracking for Distributed Key-Value Stores" (https://gsd.di.uminho.pt/members/vff/dotted-version-vectors-2012.pdf)
+//!
+//! A dot is tuple of (replica, sequence number)
+//! A DVV is a tuple of (dot, version vector)
+//! Note the version vector is represented as a vector clock and a dot cloud
+//!
+//! Read the first four sections of the linked paper which explains in the detail the need for DVVs through examples.
+//!
+//! The main innovation of DVV is that comparison is O(1) instead of O(n) where n is the number of replicas.
+//!
+//! For two DVVs: ((i, n), u) and ((j, m), v) if n <= v(i) then it follows that u <= v
+//! basicaly you just need to check if the sequence number of the dot is less than or equal to the version vector at the replica id of the dot.
+//! If not then the two DVVs are concurrent.
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::ReplicaId;
@@ -44,8 +60,19 @@ impl<V: Clone + PartialEq + std::fmt::Debug> DotKernel<V> {
             }
         }
 
-        // If the dot context has the dot but entries do not, it means `other`
+        // If `other`'s dot context has the dot Dot(i, n) but its entries do not, it means `other`
         // saw it and deleted it from its own entries.
+        //
+        // Here is an example to illustrate this:
+        // A's state:
+        //   Entries: {Dot(A, 2) -> "lmao", Dot(B, 1) -> "lol"}
+        //   Ctx:     {Dot(A, 2), Dot(B, 1)}
+        // B's state:
+        //   Entries: {Dot(B, 2) -> "norb", Dot(B, 1) -> "lol"}
+        //   Ctx:     {Dot(A, 1), Dot(B, 2)}
+        //
+        // If we merge A and B, we see that B does not have Dot(A, 2) in its ctx, so we don't remove "lmao".
+        // But if it did have Dot(A, 2) then it means A <= B.
         for dot in self.entries.keys() {
             if other.ctx.contains(*dot) && !other.entries.contains_key(dot) {
                 entries.remove(dot);
