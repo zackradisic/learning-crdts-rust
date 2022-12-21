@@ -10,7 +10,7 @@ where
     V: Clone + PartialEq + Default,
 {
     pub(crate) kernel: DotKernel<V>,
-    delta: Option<DotKernel<V>>,
+    pub(crate) delta: Option<DotKernel<V>>,
 }
 
 impl<V> Default for AWORSet<V>
@@ -36,14 +36,18 @@ where
         }
     }
 
+    pub fn len(&self) -> usize {
+        self.kernel.entries.len()
+    }
+
     pub fn add(&mut self, replica: ReplicaId, value: V) {
         let deltas = self.delta.get_or_insert_default();
         // Remove duplicates
-        self.kernel.remove(value.clone(), deltas);
+        self.kernel.remove(&value, deltas);
         self.kernel.add(replica, value, deltas);
     }
 
-    pub fn remove(&mut self, value: V) {
+    pub fn remove(&mut self, value: &V) {
         self.kernel
             .remove(value, self.delta.get_or_insert_default());
     }
@@ -87,6 +91,12 @@ where
     pub fn value(&self) -> BTreeSet<V> {
         self.kernel.values().cloned().collect()
     }
+    pub fn values_ref(&self) -> BTreeSet<&V> {
+        self.kernel.values().collect()
+    }
+    pub fn values_iter(&self) -> std::collections::btree_map::Values<super::dot::Dot, V> {
+        self.kernel.values()
+    }
 }
 
 impl<V> AWORSet<V>
@@ -99,7 +109,7 @@ where
 }
 
 #[cfg(test)]
-mod test {
+pub mod test {
     use crate::ReplicaGenerator;
 
     use super::AWORSet;
@@ -120,7 +130,7 @@ mod test {
         assert_eq!(a, b)
     }
 
-    mod properties {
+    pub mod properties {
         use crate::delta_state::{
             aworset::AWORSet,
             dot::{
@@ -130,13 +140,13 @@ mod test {
         };
         use proptest::prelude::*;
 
-        fn aworset_strategy() -> impl Strategy<Value = AWORSet<u16>> {
+        pub fn aworset_strategy() -> impl Strategy<Value = AWORSet<u16>> {
             dotkernel_strategy(any::<u16>()).prop_map(|kernel| AWORSet {
                 kernel,
                 delta: None,
             })
         }
-        fn patch<V: Clone + PartialEq + Default>(aworsets: &mut [&mut AWORSet<V>]) {
+        pub fn patch<V: Clone + PartialEq + Default>(aworsets: &mut [&mut AWORSet<V>]) {
             let mut kernels: Vec<&mut DotKernel<V>> =
                 aworsets.iter_mut().map(|set| &mut set.kernel).collect();
             patch_kernels(kernels.as_mut_slice())
