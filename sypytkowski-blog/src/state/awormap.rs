@@ -1,8 +1,9 @@
 use std::collections::BTreeMap;
 
-use crate::{ReplicaId, Value};
-
-use super::{aworset::AWORSet, convergent::Convergent};
+use crate::{
+    delta_state::{aworset::AWORSet, convergent::Convergent},
+    ReplicaId, Value,
+};
 
 #[cfg(feature = "wasm")]
 #[derive(Debug, PartialEq, serde_derive::Serialize, serde_derive::Deserialize)]
@@ -77,10 +78,8 @@ mod test {
     mod properties {
 
         use crate::{
-            delta_state::{
-                awormap::AWORMap,
-                aworset::{self, test::properties::aworset_strategy},
-            },
+            delta_state::aworset::{self, test::properties::aworset_strategy},
+            state::awormap::AWORMap,
             Value,
         };
         use proptest::prelude::*;

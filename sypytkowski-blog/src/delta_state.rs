@@ -1,4 +1,3 @@
-pub mod awormap;
 pub mod aworset;
 pub mod convergent;
 pub mod dot;
