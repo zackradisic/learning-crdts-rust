@@ -5,6 +5,9 @@ use crate::{
 
 /// A state-based CRDT list is not part of Bartosz Sypytkowski's blog series, this
 /// is just an exercise for myself to see how it could be done.
+///
+/// It works nicely if you only ever push/pop from the end of the list, perhaps stack is
+/// a better name
 #[derive(Clone, Debug)]
 pub struct List<V> {
     ctx: DotCtx,
@@ -40,6 +43,15 @@ impl<V: Clone + std::fmt::Debug> List<V> {
     pub fn push(&mut self, replica: ReplicaId, value: V) {
         let dot = self.ctx.next_dot(replica);
         self.values.push((dot, value));
+        self.tombstone = (dot, self.values.len());
+    }
+
+    pub fn insert(&mut self, replica: ReplicaId, value: V, index: usize) {
+        let dot = self.ctx.next_dot(replica);
+        self.values.insert(index, (dot, value));
+        self.values.iter_mut().skip(index + 1).for_each(|(d, _)| {
+            *d = dot;
+        });
         self.tombstone = (dot, self.values.len());
     }
 

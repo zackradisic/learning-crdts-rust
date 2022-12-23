@@ -1,16 +1,16 @@
 use std::collections::BTreeSet;
 
-use crate::ReplicaId;
+use crate::{ReplicaId, Value};
 
 use super::dot::DotKernel;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct MVReg<V: Clone> {
+pub struct MVReg<V: Clone + Value> {
     pub(crate) core: DotKernel<V>,
     pub(crate) delta: Option<DotKernel<V>>,
 }
 
-impl<V: Clone + Default + PartialEq> Default for MVReg<V> {
+impl<V: Clone + Default + PartialEq + Value> Default for MVReg<V> {
     fn default() -> Self {
         Self {
             core: Default::default(),
@@ -19,7 +19,7 @@ impl<V: Clone + Default + PartialEq> Default for MVReg<V> {
     }
 }
 
-impl<V: Clone + std::fmt::Debug + PartialEq + Ord + Default> MVReg<V> {
+impl<V: Clone + std::fmt::Debug + PartialEq + Ord + Default + Value> MVReg<V> {
     pub fn value(&self) -> BTreeSet<&V> {
         self.core.values().collect()
     }
@@ -80,10 +80,10 @@ mod test {
         let mut gen = ReplicaGenerator::new();
         let a_id = gen.gen();
         let b_id = gen.gen();
-        let mut a = MVReg::<&str>::default();
-        let mut b = MVReg::<&str>::default();
+        let mut a = MVReg::<String>::default();
+        let mut b = MVReg::<String>::default();
 
-        a.set(a_id, "noice");
+        a.set(a_id, "noice".into());
         let (a, a_deltas) = a.split_expect_deltas();
         b.merge_delta(a_deltas);
         let (b, _) = b.split();
@@ -92,19 +92,22 @@ mod test {
     }
 
     mod properties {
-        use crate::delta_state::{
-            dot::{
-                test::{dotkernel_strategy, patch_kernels},
-                DotKernel,
+        use crate::{
+            delta_state::{
+                dot::{
+                    test::{dotkernel_strategy, patch_kernels},
+                    DotKernel,
+                },
+                mvreg::MVReg,
             },
-            mvreg::MVReg,
+            Value,
         };
         use proptest::prelude::*;
 
         fn mvgreg_strategy() -> impl Strategy<Value = MVReg<u16>> {
             dotkernel_strategy(any::<u16>()).prop_map(|core| MVReg { core, delta: None })
         }
-        fn patch<V: Clone + PartialEq + Default>(mvgregs: &mut [&mut MVReg<V>]) {
+        fn patch<V: Clone + PartialEq + Default + Value>(mvgregs: &mut [&mut MVReg<V>]) {
             let mut kernels: Vec<&mut DotKernel<V>> =
                 mvgregs.iter_mut().map(|reg| &mut reg.core).collect();
             patch_kernels(kernels.as_mut_slice())

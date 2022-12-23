@@ -1,21 +1,26 @@
 use std::collections::{BTreeSet, HashSet};
 
-use crate::ReplicaId;
+use crate::{ReplicaId, Value};
 
 use super::dot::DotKernel;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct AWORSet<V>
-where
-    V: Clone + PartialEq + Default,
-{
+#[cfg_attr(
+    feature = "wasm",
+    derive(
+        fp_bindgen::prelude::Serializable,
+        serde_derive::Serialize,
+        serde_derive::Deserialize
+    )
+)]
+pub struct AWORSet<V: Clone + PartialEq + Default + Value> {
     pub(crate) kernel: DotKernel<V>,
     pub(crate) delta: Option<DotKernel<V>>,
 }
 
 impl<V> Default for AWORSet<V>
 where
-    V: Clone + PartialEq + Default,
+    V: Clone + PartialEq + Default + Value,
 {
     fn default() -> Self {
         Self {
@@ -27,7 +32,7 @@ where
 
 impl<V> AWORSet<V>
 where
-    V: Clone + PartialEq + Default + std::fmt::Debug,
+    V: Clone + PartialEq + Default + std::fmt::Debug + Value,
 {
     pub fn new(kernel: DotKernel<V>) -> Self {
         Self {
@@ -86,7 +91,7 @@ where
 
 impl<V> AWORSet<V>
 where
-    V: Clone + PartialEq + Default + Ord + std::fmt::Debug,
+    V: Clone + PartialEq + Default + Ord + std::fmt::Debug + Value,
 {
     pub fn value(&self) -> BTreeSet<V> {
         self.kernel.values().cloned().collect()
@@ -101,7 +106,7 @@ where
 
 impl<V> AWORSet<V>
 where
-    V: Clone + PartialEq + Default + Eq + std::hash::Hash + std::fmt::Debug,
+    V: Clone + PartialEq + Default + Eq + std::hash::Hash + std::fmt::Debug + Value,
 {
     pub fn value_hashset(&self) -> HashSet<V> {
         self.kernel.values().cloned().collect()
@@ -119,10 +124,10 @@ pub mod test {
         let mut gen = ReplicaGenerator::new();
         let a_id = gen.gen();
         let b_id = gen.gen();
-        let mut a = AWORSet::<&str>::default();
-        let mut b = AWORSet::<&str>::default();
+        let mut a = AWORSet::<String>::default();
+        let mut b = AWORSet::<String>::default();
 
-        a.add(a_id, "noice");
+        a.add(a_id, "noice".into());
         let (a, a_deltas) = a.split_expect_deltas();
         b.merge_delta(a_deltas);
         let (b, _) = b.split();
@@ -131,12 +136,15 @@ pub mod test {
     }
 
     pub mod properties {
-        use crate::delta_state::{
-            aworset::AWORSet,
-            dot::{
-                test::{dotkernel_strategy, patch_kernels},
-                DotKernel,
+        use crate::{
+            delta_state::{
+                aworset::AWORSet,
+                dot::{
+                    test::{dotkernel_strategy, patch_kernels},
+                    DotKernel,
+                },
             },
+            Value,
         };
         use proptest::prelude::*;
 
@@ -146,7 +154,7 @@ pub mod test {
                 delta: None,
             })
         }
-        pub fn patch<V: Clone + PartialEq + Default>(aworsets: &mut [&mut AWORSet<V>]) {
+        pub fn patch<V: Clone + PartialEq + Default + Value>(aworsets: &mut [&mut AWORSet<V>]) {
             let mut kernels: Vec<&mut DotKernel<V>> =
                 aworsets.iter_mut().map(|set| &mut set.kernel).collect();
             patch_kernels(kernels.as_mut_slice())

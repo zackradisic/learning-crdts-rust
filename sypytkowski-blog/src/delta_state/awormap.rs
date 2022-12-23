@@ -1,16 +1,22 @@
 use std::collections::BTreeMap;
 
-use crate::ReplicaId;
+use crate::{ReplicaId, Value};
 
 use super::{aworset::AWORSet, convergent::Convergent};
 
-#[derive(Debug, PartialEq)]
-pub struct AWORMap<K: Clone + PartialEq + Default + std::fmt::Debug, V> {
+#[cfg(feature = "wasm")]
+#[derive(Debug, PartialEq, serde_derive::Serialize, serde_derive::Deserialize)]
+pub struct AWORMap<
+    K: Clone + PartialEq + Default + std::fmt::Debug + std::cmp::Ord + Value,
+    V: Value,
+> {
     pub(crate) keys: AWORSet<K>,
     pub(crate) entries: BTreeMap<K, V>,
 }
 
-impl<K: Clone + PartialEq + Default + std::fmt::Debug, V> Default for AWORMap<K, V> {
+impl<K: Clone + PartialEq + Default + std::fmt::Debug + std::cmp::Ord + Value, V: Value> Default
+    for AWORMap<K, V>
+{
     fn default() -> Self {
         Self {
             keys: Default::default(),
@@ -20,8 +26,8 @@ impl<K: Clone + PartialEq + Default + std::fmt::Debug, V> Default for AWORMap<K,
 }
 
 impl<
-        K: Clone + PartialEq + Default + std::fmt::Debug + std::cmp::Ord,
-        V: Convergent + Clone + std::fmt::Debug,
+        K: Clone + PartialEq + Default + std::fmt::Debug + std::cmp::Ord + Value,
+        V: Convergent + Clone + std::fmt::Debug + Value,
     > AWORMap<K, V>
 {
     pub fn value(&self) -> &BTreeMap<K, V> {
@@ -70,9 +76,12 @@ mod test {
 
     mod properties {
 
-        use crate::delta_state::{
-            awormap::AWORMap,
-            aworset::{self, test::properties::aworset_strategy},
+        use crate::{
+            delta_state::{
+                awormap::AWORMap,
+                aworset::{self, test::properties::aworset_strategy},
+            },
+            Value,
         };
         use proptest::prelude::*;
 
@@ -93,8 +102,13 @@ mod test {
         }
 
         fn patch<
-            K: std::clone::Clone + std::cmp::PartialEq + std::default::Default + std::fmt::Debug + Ord,
-            V: Clone + PartialEq + Default,
+            K: std::clone::Clone
+                + std::cmp::PartialEq
+                + std::default::Default
+                + std::fmt::Debug
+                + Ord
+                + Value,
+            V: Clone + PartialEq + Default + Value,
         >(
             awormaps: &mut [&mut AWORMap<K, V>],
         ) {

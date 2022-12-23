@@ -19,13 +19,24 @@
 //! vector clock for each element, we need to track every client that has added or removed the element. This is not necessary with DVVs.
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::ReplicaId;
+use fp_bindgen::prelude::Serializable;
+
+use crate::{ReplicaId, Value};
 
 pub type VectorClock = BTreeMap<ReplicaId, u64>;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(
+    feature = "wasm",
+    derive(
+        fp_bindgen::prelude::Serializable,
+        serde_derive::Serialize,
+        serde_derive::Deserialize
+    )
+)]
 pub struct Dot(pub ReplicaId, pub u64);
 
+#[cfg(not(feature = "wasm"))]
 #[derive(Debug, Clone, PartialEq)]
 pub struct DotKernel<V: Clone> {
     pub(crate) ctx: DotCtx,
@@ -33,12 +44,34 @@ pub struct DotKernel<V: Clone> {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(
+    feature = "wasm",
+    derive(
+        fp_bindgen::prelude::Serializable,
+        serde_derive::Serialize,
+        serde_derive::Deserialize
+    )
+)]
+pub struct DotKernel<V: Clone + Value> {
+    pub(crate) ctx: DotCtx,
+    pub(crate) entries: BTreeMap<Dot, V>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(
+    feature = "wasm",
+    derive(
+        fp_bindgen::prelude::Serializable,
+        serde_derive::Serialize,
+        serde_derive::Deserialize
+    )
+)]
 pub struct DotCtx {
     pub(crate) clock: VectorClock,
     pub(crate) dot_cloud: BTreeSet<Dot>,
 }
 
-impl<V: Clone + PartialEq + Default> Default for DotKernel<V> {
+impl<V: Clone + PartialEq + Default + Value> Default for DotKernel<V> {
     fn default() -> Self {
         Self {
             ctx: Default::default(),
@@ -47,7 +80,7 @@ impl<V: Clone + PartialEq + Default> Default for DotKernel<V> {
     }
 }
 
-impl<V: Clone + PartialEq + std::fmt::Debug> DotKernel<V> {
+impl<V: Clone + PartialEq + std::fmt::Debug + Value> DotKernel<V> {
     pub fn values(&self) -> std::collections::btree_map::Values<Dot, V> {
         self.entries.values()
     }
@@ -200,7 +233,7 @@ pub mod test {
         strategy::ValueTree,
     };
 
-    use crate::ReplicaId;
+    use crate::{ReplicaId, Value};
 
     use super::{Dot, DotCtx, DotKernel, VectorClock};
 
@@ -226,7 +259,7 @@ pub mod test {
         })
     }
 
-    pub fn dotkernel_strategy<V: Clone + std::fmt::Debug>(
+    pub fn dotkernel_strategy<V: Clone + std::fmt::Debug + Value>(
         value_strategy: impl Strategy<Value = V> + Copy + 'static,
     ) -> impl Strategy<Value = DotKernel<V>> {
         (
@@ -300,7 +333,7 @@ pub mod test {
     /// This is an illegal state because it means the replica has two different values
     /// at the exact same time, which is impossible because adding to a replica
     /// increments the dot.
-    pub fn patch_kernels<V: Clone + PartialEq>(kernels: &mut [&mut DotKernel<V>]) {
+    pub fn patch_kernels<V: Clone + PartialEq + Value>(kernels: &mut [&mut DotKernel<V>]) {
         let mut deletions: Vec<(usize, Dot)> = vec![];
         for i in 0..kernels.len() {
             for (dot, value) in kernels[i].entries.iter() {

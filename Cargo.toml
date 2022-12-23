@@ -1,5 +1,7 @@
 [workspace]
 
 members = [
-        "sypytkowski-blog"
+        "sypytkowski-blog",
+        "ligma",
+        "ligma-protocol"
 ]
