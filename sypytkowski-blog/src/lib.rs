@@ -1,8 +1,13 @@
 #![feature(option_get_or_insert_default)]
 #![feature(btree_drain_filter)]
 
+use std::str::FromStr;
+
+use fp_bindgen::prelude::Serializable;
+
 pub mod delta_state;
 pub mod state;
+
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(
     feature = "wasm",
@@ -12,6 +17,7 @@ pub mod state;
         serde_derive::Deserialize
     )
 )]
+#[cfg_attr(feature = "wasm", fp(rust_plugin_module = "sypytkowski_blog"))]
 pub struct ReplicaId(u64);
 
 impl From<u64> for ReplicaId {

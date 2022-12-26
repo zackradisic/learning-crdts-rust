@@ -17,30 +17,132 @@
 //!
 //! In addition, DVVs are also more space efficient. For example in the original ORSet implementation (see or_set.rs) we store a
 //! vector clock for each element, we need to track every client that has added or removed the element. This is not necessary with DVVs.
-use std::collections::{BTreeMap, BTreeSet};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    fmt::Write,
+    ops::{Deref, DerefMut},
+};
 
-use fp_bindgen::prelude::Serializable;
+use serde::{de::Visitor, Deserialize, Serialize};
 
 use crate::{ReplicaId, Value};
 
-pub type VectorClock = BTreeMap<ReplicaId, u64>;
+#[derive(Deserialize)]
+pub struct VectorClockDeserializer(BTreeMap<String, u64>);
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "wasm", derive(fp_bindgen::prelude::Serializable))]
 #[cfg_attr(
     feature = "wasm",
-    derive(
-        fp_bindgen::prelude::Serializable,
-        serde_derive::Serialize,
-        serde_derive::Deserialize
-    )
+    fp(rust_plugin_module = "sypytkowski_blog::delta_state::dot")
+)]
+pub struct VectorClock(pub BTreeMap<ReplicaId, u64>);
+
+impl Default for VectorClock {
+    fn default() -> Self {
+        Self(BTreeMap::new())
+    }
+}
+
+impl Deref for VectorClock {
+    type Target = BTreeMap<ReplicaId, u64>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for VectorClock {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl Serialize for VectorClock {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeMap;
+        let mut map = serializer.serialize_map(Some(self.len()))?;
+        let mut str_buf = String::new();
+        for (&replica_id, &value) in self.iter() {
+            let start = str_buf.len();
+            write!(str_buf, "{:?}:{:?}", replica_id.0, value).unwrap();
+            let end = str_buf.len();
+            map.serialize_entry(&str_buf.as_str()[start..end], &value)?;
+        }
+        map.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for VectorClock {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let mut str_map = VectorClockDeserializer::deserialize(deserializer)?.0;
+        let mut map = BTreeMap::new();
+        for (k, v) in str_map {
+            let id = ReplicaId(k.parse().map_err(|e| serde::de::Error::custom(e))?);
+            map.insert(id, v);
+        }
+        Ok(VectorClock(map))
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(feature = "wasm", derive(fp_bindgen::prelude::Serializable))]
+#[cfg_attr(
+    feature = "wasm",
+    fp(rust_plugin_module = "sypytkowski_blog::delta_state::dot")
 )]
 pub struct Dot(pub ReplicaId, pub u64);
 
-#[cfg(not(feature = "wasm"))]
-#[derive(Debug, Clone, PartialEq)]
-pub struct DotKernel<V: Clone> {
-    pub(crate) ctx: DotCtx,
-    pub(crate) entries: BTreeMap<Dot, V>,
+impl serde::Serialize for Dot {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_str(&format!("{:?}:{:?}", self.0 .0, self.1))
+    }
+}
+struct DotDeserializer;
+impl<'de> Visitor<'de> for DotDeserializer {
+    type Value = Dot;
+
+    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(formatter, "Dot")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        let mut split = v.split(':');
+        let replica = split
+            .next()
+            .ok_or(serde::de::Error::missing_field("replica"))?;
+        let sequence_number = split
+            .next()
+            .ok_or(serde::de::Error::missing_field("sequence number"))?;
+
+        Ok(Dot(
+            ReplicaId(
+                replica
+                    .parse::<u64>()
+                    .map_err(|e| serde::de::Error::custom(e.to_string()))?,
+            ),
+            sequence_number
+                .parse::<u64>()
+                .map_err(|e| serde::de::Error::custom(e.to_string()))?,
+        ))
+    }
+}
+impl<'de> serde::Deserialize<'de> for Dot {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        deserializer.deserialize_str(DotDeserializer)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -225,7 +327,7 @@ impl DotCtx {
 
 #[cfg(test)]
 pub mod test {
-    use std::collections::BTreeSet;
+    use std::collections::{BTreeMap, BTreeSet};
 
     use proptest::{
         collection::{btree_map, btree_set},
@@ -250,6 +352,7 @@ pub mod test {
             0..MAX_VALUES,
             0..(MAX_VALUES as usize),
         )
+        .prop_map(VectorClock)
     }
     fn dotctx_strategy() -> impl Strategy<Value = DotCtx> {
         (dotcloud_strategy(), vector_clock_strategy()).prop_map(|(dot_cloud, clock)| {
@@ -260,7 +363,7 @@ pub mod test {
     }
 
     pub fn dotkernel_strategy<V: Clone + std::fmt::Debug + Value>(
-        value_strategy: impl Strategy<Value = V> + Copy + 'static,
+        value_strategy: impl Strategy<Value = V>,
     ) -> impl Strategy<Value = DotKernel<V>> {
         (
             dotctx_strategy(),

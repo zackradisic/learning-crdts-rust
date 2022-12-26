@@ -80,6 +80,11 @@ where
         self.delta = Some(new_deltas);
     }
 
+    pub fn split_mut(&mut self) -> Option<DotKernel<V>> {
+        let delta = self.delta.take();
+        delta
+    }
+
     pub fn split(self) -> (AWORSet<V>, Option<DotKernel<V>>) {
         (AWORSet::new(self.kernel), self.delta)
     }
@@ -99,6 +104,12 @@ where
     pub fn values_ref(&self) -> BTreeSet<&V> {
         self.kernel.values().collect()
     }
+}
+
+impl<V> AWORSet<V>
+where
+    V: Clone + PartialEq + Default + std::fmt::Debug + Value,
+{
     pub fn values_iter(&self) -> std::collections::btree_map::Values<super::dot::Dot, V> {
         self.kernel.values()
     }
@@ -136,6 +147,8 @@ pub mod test {
     }
 
     pub mod properties {
+        use std::fmt::Debug;
+
         use crate::{
             delta_state::{
                 aworset::AWORSet,
@@ -148,11 +161,16 @@ pub mod test {
         };
         use proptest::prelude::*;
 
-        pub fn aworset_strategy() -> impl Strategy<Value = AWORSet<u16>> {
-            dotkernel_strategy(any::<u16>()).prop_map(|kernel| AWORSet {
+        pub fn aworset_strategy_impl<V: Debug + Clone + Value + Default + PartialEq>(
+            value_strat: impl Strategy<Value = V> + 'static,
+        ) -> impl Strategy<Value = AWORSet<V>> {
+            dotkernel_strategy(value_strat).prop_map(|kernel| AWORSet {
                 kernel,
                 delta: None,
             })
+        }
+        pub fn aworset_strategy() -> impl Strategy<Value = AWORSet<u16>> {
+            aworset_strategy_impl(any::<u16>())
         }
         pub fn patch<V: Clone + PartialEq + Default + Value>(aworsets: &mut [&mut AWORSet<V>]) {
             let mut kernels: Vec<&mut DotKernel<V>> =

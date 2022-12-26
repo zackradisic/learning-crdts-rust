@@ -3,5 +3,6 @@
 members = [
         "sypytkowski-blog",
         "ligma",
-        "ligma-protocol"
+        "ligma-protocol-gen",
+        # "ligma-protocol"
 ]

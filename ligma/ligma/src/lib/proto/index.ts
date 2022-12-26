@@ -12,10 +12,15 @@ import type * as types from "./types";
 type FatPtr = bigint;
 
 export type Imports = {
+    log: (str: string) => void;
 };
 
 export type Exports = {
-    test?: (dot: types.Dot) => types.Dot;
+    deltas?: () => Deltas<SquareId, Square>;
+    get?: () => types.AWORMap<types.SquareId, types.Square>;
+    merge?: (delta: Deltas<SquareId, Square>) => void;
+    replace?: (map: types.AWORMap<types.SquareId, types.Square>) => void;
+    set?: (replica: types.ReplicaId, id: types.SquareId, square: types.Square) => void;
 };
 
 /**
@@ -133,6 +138,10 @@ export async function createRuntime(
 
     const { instance } = await WebAssembly.instantiate(plugin, {
         fp: {
+            __fp_gen_log: (str_ptr: FatPtr) => {
+                const str = parseObject<string>(str_ptr);
+                importFunctions.log(str);
+            },
         },
     });
 
@@ -149,13 +158,45 @@ export async function createRuntime(
     const free = getExport<(ptr: FatPtr) => void>("__fp_free");
 
     return {
-        test: (() => {
-            const export_fn = instance.exports.__fp_gen_test as any;
+        deltas: (() => {
+            const export_fn = instance.exports.__fp_gen_deltas as any;
             if (!export_fn) return;
 
-            return (dot: types.Dot) => {
-                const dot_ptr = serializeObject(dot);
-                return parseObject<types.Dot>(export_fn(dot_ptr));
+            return () => parseObject<Deltas<SquareId, Square>>(export_fn());
+        })(),
+        get: (() => {
+            const export_fn = instance.exports.__fp_gen_get as any;
+            if (!export_fn) return;
+
+            return () => parseObject<types.AWORMap<types.SquareId, types.Square>>(export_fn());
+        })(),
+        merge: (() => {
+            const export_fn = instance.exports.__fp_gen_merge as any;
+            if (!export_fn) return;
+
+            return (delta: Deltas<SquareId, Square>) => {
+                const delta_ptr = serializeObject(delta);
+                export_fn(delta_ptr);
+            };
+        })(),
+        replace: (() => {
+            const export_fn = instance.exports.__fp_gen_replace as any;
+            if (!export_fn) return;
+
+            return (map: types.AWORMap<types.SquareId, types.Square>) => {
+                const map_ptr = serializeObject(map);
+                export_fn(map_ptr);
+            };
+        })(),
+        set: (() => {
+            const export_fn = instance.exports.__fp_gen_set as any;
+            if (!export_fn) return;
+
+            return (replica: types.ReplicaId, id: types.SquareId, square: types.Square) => {
+                const replica_ptr = serializeObject(replica);
+                const id_ptr = serializeObject(id);
+                const square_ptr = serializeObject(square);
+                export_fn(replica_ptr, id_ptr, square_ptr);
             };
         })(),
     };
