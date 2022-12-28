@@ -13,7 +13,7 @@ use tungstenite::Message;
 
 use std::sync::{atomic::AtomicU64, Arc};
 
-use ligma_protocol::{ReplicaId, Square, SquareId};
+use convergent_experiment_protocol::{ReplicaId, Square, SquareId};
 use sypytkowski_blog::delta_state::awormap::{AWORMap, Deltas};
 use tokio::{
     net::{TcpListener, TcpStream},

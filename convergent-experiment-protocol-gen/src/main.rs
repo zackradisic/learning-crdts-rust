@@ -37,7 +37,7 @@ fn main() {
     let bindings = [
         (
             BindingsType::RustPlugin(RustPluginConfig {
-                name: "ligma-protocol",
+                name: "convergent-experiment-protocol",
                 authors: "[\"zackoverflow\"]",
                 version: "0.0.1",
                 dependencies: [(
@@ -50,11 +50,11 @@ fn main() {
                 )]
                 .into(),
             }),
-            "ligma-protocol",
+            "convergent-experiment-protocol",
         ),
         (
             BindingsType::TsRuntimeWithExtendedConfig(TsExtendedRuntimeConfig::default()),
-            "ligma/ligma/src/lib/proto",
+            "convergent-experiment/frontend/src/lib/proto",
         ),
     ];
 

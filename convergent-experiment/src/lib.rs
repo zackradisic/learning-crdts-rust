@@ -1,6 +1,6 @@
 use std::{cell::RefCell, panic};
 
-use ligma_protocol::*;
+use convergent_experiment_protocol::*;
 use once_cell::sync::Lazy;
 use sypytkowski_blog::delta_state::awormap::{AWORMap, Deltas};
 
@@ -41,39 +41,39 @@ fn panic_hook() {
     panic::set_hook(Box::new(hook_impl))
 }
 
-#[fp_export_impl(ligma_protocol)]
+#[fp_export_impl(convergent_experiment_protocol)]
 fn get() -> AWORMap<SquareId, Square> {
     panic_hook();
     unsafe { STATE.get_mut().clone() }
 }
 
-#[fp_export_impl(ligma_protocol)]
+#[fp_export_impl(convergent_experiment_protocol)]
 fn merge(map: AWORMap<SquareId, Square>) -> AWORMap<SquareId, Square> {
     let state = unsafe { STATE.get_mut() };
     *state = state.merge(&map);
     state.clone()
 }
 
-#[fp_export_impl(ligma_protocol)]
+#[fp_export_impl(convergent_experiment_protocol)]
 fn merge_deltas(delta: Deltas<SquareId, Square>) {
     let state = unsafe { STATE.get_mut() };
     state.merge_delta(delta);
 }
 
-#[fp_export_impl(ligma_protocol)]
+#[fp_export_impl(convergent_experiment_protocol)]
 fn set(replica: sypytkowski_blog::ReplicaId, id: SquareId, square: Square) {
     let state = unsafe { STATE.get_mut() };
     state.insert(replica, id, square);
 }
 
-#[fp_export_impl(ligma_protocol)]
+#[fp_export_impl(convergent_experiment_protocol)]
 fn deltas() -> Deltas<SquareId, Square> {
     let state = unsafe { STATE.get_mut() };
     let deltas = state.split_mut();
     deltas.unwrap_or(Default::default())
 }
 
-#[fp_export_impl(ligma_protocol)]
+#[fp_export_impl(convergent_experiment_protocol)]
 fn replace(map: AWORMap<SquareId, Square>) {
     let state = unsafe { STATE.get_mut() };
     *state = map;

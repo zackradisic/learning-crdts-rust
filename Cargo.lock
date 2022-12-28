@@ -91,6 +91,53 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
+name = "convergent-experiment"
+version = "0.1.0"
+dependencies = [
+ "convergent-experiment-protocol",
+ "once_cell",
+ "sypytkowski-blog",
+]
+
+[[package]]
+name = "convergent-experiment-protocol"
+version = "0.0.1"
+dependencies = [
+ "fp-bindgen",
+ "fp-bindgen-support",
+ "once_cell",
+ "rmp-serde",
+ "serde",
+ "sypytkowski-blog",
+]
+
+[[package]]
+name = "convergent-experiment-protocol-gen"
+version = "0.1.0"
+dependencies = [
+ "fp-bindgen",
+ "serde",
+ "sypytkowski-blog",
+]
+
+[[package]]
+name = "convergent-experiment-ws"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "convergent-experiment-protocol",
+ "futures-util",
+ "log",
+ "rmp-serde",
+ "serde",
+ "serde_derive",
+ "sypytkowski-blog",
+ "tokio",
+ "tokio-tungstenite",
+ "tungstenite",
+]
+
+[[package]]
 name = "cpufeatures"
 version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -350,53 +397,6 @@ name = "libc"
 version = "0.2.138"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "db6d7e329c562c5dfab7a46a2afabc8b987ab9a4834c9d1ca04dc54c1546cef8"
-
-[[package]]
-name = "ligma"
-version = "0.1.0"
-dependencies = [
- "ligma-protocol",
- "once_cell",
- "sypytkowski-blog",
-]
-
-[[package]]
-name = "ligma-protocol"
-version = "0.0.1"
-dependencies = [
- "fp-bindgen",
- "fp-bindgen-support",
- "once_cell",
- "rmp-serde",
- "serde",
- "sypytkowski-blog",
-]
-
-[[package]]
-name = "ligma-protocol-gen"
-version = "0.1.0"
-dependencies = [
- "fp-bindgen",
- "serde",
- "sypytkowski-blog",
-]
-
-[[package]]
-name = "ligma-ws"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "futures-util",
- "ligma-protocol",
- "log",
- "rmp-serde",
- "serde",
- "serde_derive",
- "sypytkowski-blog",
- "tokio",
- "tokio-tungstenite",
- "tungstenite",
-]
 
 [[package]]
 name = "lock_api"

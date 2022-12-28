@@ -2,8 +2,8 @@
 
 members = [
         "sypytkowski-blog",
-        "ligma",
-        "ligma-protocol-gen",
-        "ligma-protocol",
-        "ligma-ws"
+        "convergent-experiment",
+        "convergent-experiment-protocol-gen",
+        "convergent-experiment-protocol",
+        "convergent-experiment-ws"
 ]

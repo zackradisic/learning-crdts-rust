@@ -1,5 +1,5 @@
 [package]
-name = "ligma-ws"
+name = "convergent-experiment-ws"
 version = "0.1.0"
 edition = "2021"
 
@@ -14,6 +14,6 @@ tokio = { version = "1.23.0", features = ["full"] }
 tokio-tungstenite = "0.18.0"
 tungstenite = "0.18.0"
 sypytkowski-blog = { path = "../sypytkowski-blog", features=["wasm"] }
-ligma-protocol = { path="../ligma-protocol" }
+convergent-experiment-protocol = { path="../convergent-experiment-protocol" }
 anyhow = "1.0.68"
 futures-util = "0.3.25"

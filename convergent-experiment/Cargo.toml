@@ -1,5 +1,5 @@
 [package]
-name = "ligma"
+name = "convergent-experiment"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,6 +9,6 @@ crate-type = ["cdylib"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ligma-protocol = { path = "../ligma-protocol" }
+convergent-experiment-protocol = { path = "../convergent-experiment-protocol" }
 once_cell = "1.16.0"
 sypytkowski-blog = { path = "../sypytkowski-blog", features = ["wasm"] }
