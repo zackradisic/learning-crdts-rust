@@ -10,10 +10,13 @@
   },
   "dependencies": {
     "@msgpack/msgpack": "^2.8.0",
+    "@use-gesture/react": "^10.2.23",
     "next": "13.0.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "zod": "^3.18.0"
+    "tyfsm": "^1.0.5",
+    "zod": "^3.18.0",
+    "zustand": "^4.1.5"
   },
   "devDependencies": {
     "@types/node": "^18.0.0",

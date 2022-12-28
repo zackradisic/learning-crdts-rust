@@ -36,16 +36,14 @@ pub struct DotKernel<V: Clone + Value> {
     PartialEq,
     Serialize,
     Default,
-    Eq,
     PartialOrd,
-    Ord,
     fp_bindgen::prelude::Serializable,
 )]
 pub struct Square {
-    pub x: i32,
-    pub y: i32,
-    pub width: i32,
-    pub height: i32,
+    pub x: f32,
+    pub y: f32,
+    pub width: f32,
+    pub height: f32,
 }
 
 #[derive(

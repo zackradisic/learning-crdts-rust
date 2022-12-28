@@ -2,7 +2,7 @@ use std::{cell::RefCell, panic};
 
 use ligma_protocol::*;
 use once_cell::sync::Lazy;
-use sypytkowski_blog::delta_state::awormap::Deltas;
+use sypytkowski_blog::delta_state::awormap::{AWORMap, Deltas};
 
 // We maintain the global state in a mutable static so that we do not need to pass it from
 // JavaScript every time we call the reducer. This avoids significant serialization overhead we
@@ -44,13 +44,18 @@ fn panic_hook() {
 #[fp_export_impl(ligma_protocol)]
 fn get() -> AWORMap<SquareId, Square> {
     panic_hook();
-    log("hello".to_string());
     unsafe { STATE.get_mut().clone() }
 }
 
 #[fp_export_impl(ligma_protocol)]
-fn merge(delta: Deltas<SquareId, Square>) {
-    log("HI".to_string());
+fn merge(map: AWORMap<SquareId, Square>) -> AWORMap<SquareId, Square> {
+    let state = unsafe { STATE.get_mut() };
+    *state = state.merge(&map);
+    state.clone()
+}
+
+#[fp_export_impl(ligma_protocol)]
+fn merge_deltas(delta: Deltas<SquareId, Square>) {
     let state = unsafe { STATE.get_mut() };
     state.merge_delta(delta);
 }
@@ -58,7 +63,7 @@ fn merge(delta: Deltas<SquareId, Square>) {
 #[fp_export_impl(ligma_protocol)]
 fn set(replica: sypytkowski_blog::ReplicaId, id: SquareId, square: Square) {
     let state = unsafe { STATE.get_mut() };
-    state.insert(replica, id, square)
+    state.insert(replica, id, square);
 }
 
 #[fp_export_impl(ligma_protocol)]

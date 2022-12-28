@@ -27,15 +27,11 @@ use serde::{de::Visitor, Deserialize, Serialize};
 
 use crate::{ReplicaId, Value};
 
-#[derive(Deserialize)]
+#[derive(serde_derive::Deserialize)]
 pub struct VectorClockDeserializer(BTreeMap<String, u64>);
 
-#[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "wasm", derive(fp_bindgen::prelude::Serializable))]
-#[cfg_attr(
-    feature = "wasm",
-    fp(rust_plugin_module = "sypytkowski_blog::delta_state::dot")
-)]
+#[derive(Debug, Clone, PartialEq, fp_bindgen::prelude::Serializable)]
+#[fp(rust_plugin_module = "sypytkowski_blog::delta_state::dot")]
 pub struct VectorClock(pub BTreeMap<ReplicaId, u64>);
 
 impl Default for VectorClock {
@@ -68,9 +64,11 @@ impl Serialize for VectorClock {
         let mut str_buf = String::new();
         for (&replica_id, &value) in self.iter() {
             let start = str_buf.len();
-            write!(str_buf, "{:?}:{:?}", replica_id.0, value).unwrap();
+            write!(str_buf, "{:?}", replica_id.0).unwrap();
             let end = str_buf.len();
             map.serialize_entry(&str_buf.as_str()[start..end], &value)?;
+            // let fuck = replica_id.0.to_string();
+            // map.serialize_entry("hi", &value)?;
         }
         map.end()
     }
@@ -91,12 +89,8 @@ impl<'de> Deserialize<'de> for VectorClock {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
-#[cfg_attr(feature = "wasm", derive(fp_bindgen::prelude::Serializable))]
-#[cfg_attr(
-    feature = "wasm",
-    fp(rust_plugin_module = "sypytkowski_blog::delta_state::dot")
-)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, fp_bindgen::prelude::Serializable)]
+#[fp(rust_plugin_module = "sypytkowski_blog::delta_state::dot")]
 pub struct Dot(pub ReplicaId, pub u64);
 
 impl serde::Serialize for Dot {
@@ -145,28 +139,26 @@ impl<'de> serde::Deserialize<'de> for Dot {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(
-    feature = "wasm",
-    derive(
-        fp_bindgen::prelude::Serializable,
-        serde_derive::Serialize,
-        serde_derive::Deserialize
-    )
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    fp_bindgen::prelude::Serializable,
+    serde_derive::Serialize,
+    serde_derive::Deserialize,
 )]
 pub struct DotKernel<V: Clone + Value> {
     pub(crate) ctx: DotCtx,
     pub(crate) entries: BTreeMap<Dot, V>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(
-    feature = "wasm",
-    derive(
-        fp_bindgen::prelude::Serializable,
-        serde_derive::Serialize,
-        serde_derive::Deserialize
-    )
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    fp_bindgen::prelude::Serializable,
+    serde_derive::Serialize,
+    serde_derive::Deserialize,
 )]
 pub struct DotCtx {
     pub(crate) clock: VectorClock,
@@ -232,16 +224,22 @@ impl<V: Clone + PartialEq + std::fmt::Debug + Value> DotKernel<V> {
     }
 
     pub fn remove(&mut self, value: &V, delta: &mut Self) {
-        let dot = self
-            .entries
-            .iter()
-            .find(|(_, val)| val == &value)
-            .map(|(k, _)| *k);
+        // Original code:
+        // for (dot, _) in self.entries.drain_filter(|_, val| val == value) {
+        //     delta.ctx.add(dot);
+        // }
+        // delta.ctx.compact()
 
-        if let Some(dot) = dot {
-            self.entries.remove(&dot);
+        for (dot, _) in self.entries.drain_filter(|_, val| val == value) {
             delta.ctx.add(dot);
+            // The F# code from the blog post keeps the value in the delta.entries map, this
+            // causes my delta state awormap to keep the deleted key when merging with deltas which is
+            // not what we want obviously.
+            //
+            // This should be fine but just noting this here in case it does cause problems
+            delta.entries.remove(&dot);
         }
+        delta.ctx.compact()
     }
 
     pub fn remove_all(&mut self) {
@@ -339,7 +337,7 @@ pub mod test {
 
     use super::{Dot, DotCtx, DotKernel, VectorClock};
 
-    const MAX_VALUES: u64 = 100;
+    const MAX_VALUES: u64 = 1000;
     pub fn dot_strategy() -> impl Strategy<Value = Dot> {
         ((5..MAX_VALUES), (0..MAX_VALUES)).prop_map(|(id, n)| Dot(id.into(), n))
     }

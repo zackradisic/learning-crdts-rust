@@ -13,24 +13,21 @@ use super::dot::DotKernel;
 
 pub type Deltas<K, V> = DotKernel<KeyVal<K, V>>;
 
-#[derive(Default, Clone, Debug, PartialEq)]
-#[cfg_attr(
-    feature = "wasm",
-    derive(
-        serde_derive::Serialize,
-        fp_bindgen::prelude::Serializable,
-        serde_derive::Deserialize
-    )
+#[derive(
+    Default,
+    Clone,
+    Debug,
+    PartialEq,
+    serde_derive::Serialize,
+    fp_bindgen::prelude::Serializable,
+    serde_derive::Deserialize,
 )]
-#[cfg_attr(
-    feature = "wasm",
-    fp(rust_plugin_module = "sypytkowski_blog::delta_state::awormap")
-)]
+#[fp(rust_plugin_module = "sypytkowski_blog::delta_state::awormap")]
 pub struct AWORMap<
     K: Clone + PartialEq + Default + Debug + Ord + Value,
     V: Value + Clone + Default + Debug,
 > {
-    pub(crate) keys: AWORSet<KeyVal<K, V>>,
+    pub keys: AWORSet<KeyVal<K, V>>,
 }
 
 impl<K, V> AWORMap<K, V>
@@ -57,6 +54,10 @@ where
     K: Clone + PartialEq + Default + Debug + Ord + Value,
     V: Value + Clone + Default + Debug,
 {
+    pub fn len(&self) -> usize {
+        self.keys.len()
+    }
+
     pub fn insert(&mut self, replica: ReplicaId, key: K, value: V) {
         self.keys.add(replica, KeyVal { key, val: value });
     }
@@ -95,12 +96,8 @@ where
 
 /// Key-value pair so it can implement Serializable, note that
 /// it also implements PartialEq but only compares keys
-#[derive(Clone, Debug, Default)]
-#[cfg_attr(feature = "wasm", derive(fp_bindgen::prelude::Serializable,))]
-#[cfg_attr(
-    feature = "wasm",
-    fp(rust_plugin_module = "sypytkowski_blog::delta_state::awormap")
-)]
+#[derive(Clone, Debug, Default, fp_bindgen::prelude::Serializable)]
+#[fp(rust_plugin_module = "sypytkowski_blog::delta_state::awormap")]
 pub struct KeyVal<K: Clone + PartialEq + Default + Debug + Ord + Value, V: Value + Default + Debug>
 {
     key: K,
@@ -212,7 +209,7 @@ where
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(serde_derive::Serialize, serde_derive::Deserialize)]
 struct KeyValVisitor<K, V>(K, V)
 where
     K: Clone + PartialEq + Default + Debug + Ord + Value + Value,
@@ -220,9 +217,60 @@ where
 
 #[cfg(test)]
 mod test {
+    use std::sync::Arc;
+
     use crate::ReplicaGenerator;
 
     use super::AWORMap;
+
+    #[test]
+    fn test3() {
+        let mut gen = ReplicaGenerator::new();
+        let a_id = gen.gen();
+        let b_id = gen.gen();
+
+        let mut a = AWORMap::<u64, u64>::default();
+        a.insert(a_id, 1, 420);
+        let mut b = AWORMap::<u64, u64>::default();
+    }
+
+    #[test]
+    fn test2() {
+        let mut gen = ReplicaGenerator::new();
+        let a_id = gen.gen();
+        let b_id = gen.gen();
+
+        let mut a = AWORMap::<u64, u64>::default();
+        a.insert(a_id, 1, 420);
+        let mut b = a.clone();
+        b.remove(b_id, 1);
+        b.insert(b_id, 420, 69);
+        let (a, a_deltas) = a.split_expect_deltas();
+        b.merge_delta(a_deltas);
+
+        // let mut c = AWORMap::default();
+        // c.merge_delta(b.keys.delta.clone().unwrap());
+        println!("B: {:#?}\n\n{:#?}", b, b.values());
+        // println!("C: {:#?}\n\n{:#?}", c, c.values());
+    }
+
+    #[test]
+    fn test() {
+        let mut gen = ReplicaGenerator::new();
+        let a_id = gen.gen();
+        let b_id = gen.gen();
+
+        let mut a = AWORMap::<u64, u64>::default();
+        a.insert(a_id, 1, 420);
+        let mut b = a.clone();
+        b.insert(b_id, 1, 69);
+        b.insert(a_id, 1, 421);
+
+        let mut c = AWORMap::default();
+        c.merge_delta(b.keys.delta.clone().unwrap());
+        println!("B: {:#?}\n\n{:#?}", b, b.values());
+        println!("C: {:#?}\n\n{:#?}", c, c.values());
+    }
 
     #[test]
     fn works() {

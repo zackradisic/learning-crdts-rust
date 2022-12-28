@@ -5,8 +5,7 @@ use crate::{
     ReplicaId, Value,
 };
 
-#[cfg(feature = "wasm")]
-#[derive(Debug, PartialEq, serde_derive::Serialize, serde_derive::Deserialize)]
+#[derive(Clone, Debug, PartialEq, serde_derive::Serialize, serde_derive::Deserialize)]
 pub struct AWORMap<
     K: Clone + PartialEq + Default + std::fmt::Debug + std::cmp::Ord + Value,
     V: Value,
@@ -74,6 +73,14 @@ impl<
 
 #[cfg(test)]
 mod test {
+    use crate::{
+        delta_state::{
+            aworset::AWORSet,
+            dot::{Dot, DotCtx, DotKernel, VectorClock},
+        },
+        state::awormap::AWORMap,
+        ReplicaGenerator, ReplicaId,
+    };
 
     mod properties {
 
@@ -125,8 +132,8 @@ mod test {
         }
 
         proptest! {
-            #![proptest_config(ProptestConfig{ cases: 100, ..Default::default()})]
-            // #![proptest_config(ProptestConfig{ ..Default::default()})]
+            // #![proptest_config(ProptestConfig{ cases: 1, ..Default::default()})]
+            #![proptest_config(ProptestConfig{ ..Default::default()})]
 
             #[test]
             fn commutativity(mut a in awormap_strategy(), mut b in awormap_strategy()) {
@@ -135,17 +142,12 @@ mod test {
                 let ab = a.merge(&b);
                 let ba = b.merge(&a);
 
-                // if ab != ba {
-                //     println!("THE A: {:?}", a);
-                //     println!("THE B: {:?}", b);
-                // }
-                // if !(ab == ba) {
-                //     panic!()
-                // }
-
                 assert_eq!(ab, ba);
             }
 
+            // TODO: Broke these tests, see `test` and `test2` for inputs to reproduce.
+            // Problem is that the strategy for `AWORMap` is not correct and can create
+            // entries that exist in the underlying AWORSet kernel but not in the `entries` map
             #[test]
             fn associativity(mut a in awormap_strategy(), mut b in awormap_strategy(), mut c in awormap_strategy()) {
                 patch(&mut [&mut a, &mut b, &mut c]);

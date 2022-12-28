@@ -1,0 +1,19 @@
+[package]
+name = "ligma-ws"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+log = "0.4.17"
+rmp-serde = "1.1.1"
+serde = "1"
+serde_derive = "1"
+tokio = { version = "1.23.0", features = ["full"] }
+tokio-tungstenite = "0.18.0"
+tungstenite = "0.18.0"
+sypytkowski-blog = { path = "../sypytkowski-blog", features=["wasm"] }
+ligma-protocol = { path="../ligma-protocol" }
+anyhow = "1.0.68"
+futures-util = "0.3.25"

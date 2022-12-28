@@ -8,5 +8,5 @@ edition = "2021"
 [dependencies]
 # rust-plugin={path="../bindings/rust-plugin"}
 fp-bindgen = {version="2.4.0", features=["generators"]}
-serde = {version = "1.0.151", features = ["derive", "rc"]}
+serde = {version = "1", features = ["derive", "rc"]}
 sypytkowski-blog = {path="../sypytkowski-blog", features=["wasm"]}

@@ -1,21 +1,20 @@
-use std::collections::{BTreeSet, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashSet};
 
 use crate::{ReplicaId, Value};
 
 use super::dot::DotKernel;
 
-#[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(
-    feature = "wasm",
-    derive(
-        fp_bindgen::prelude::Serializable,
-        serde_derive::Serialize,
-        serde_derive::Deserialize
-    )
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    fp_bindgen::prelude::Serializable,
+    serde_derive::Serialize,
+    serde_derive::Deserialize,
 )]
 pub struct AWORSet<V: Clone + PartialEq + Default + Value> {
-    pub(crate) kernel: DotKernel<V>,
-    pub(crate) delta: Option<DotKernel<V>>,
+    pub kernel: DotKernel<V>,
+    pub delta: Option<DotKernel<V>>,
 }
 
 impl<V> Default for AWORSet<V>

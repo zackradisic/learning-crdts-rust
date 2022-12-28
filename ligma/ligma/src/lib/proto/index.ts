@@ -18,7 +18,8 @@ export type Imports = {
 export type Exports = {
     deltas?: () => Deltas<SquareId, Square>;
     get?: () => types.AWORMap<types.SquareId, types.Square>;
-    merge?: (delta: Deltas<SquareId, Square>) => void;
+    merge?: (other: types.AWORMap<types.SquareId, types.Square>) => types.AWORMap<types.SquareId, types.Square>;
+    mergeDeltas?: (delta: Deltas<SquareId, Square>) => void;
     replace?: (map: types.AWORMap<types.SquareId, types.Square>) => void;
     set?: (replica: types.ReplicaId, id: types.SquareId, square: types.Square) => void;
 };
@@ -172,6 +173,15 @@ export async function createRuntime(
         })(),
         merge: (() => {
             const export_fn = instance.exports.__fp_gen_merge as any;
+            if (!export_fn) return;
+
+            return (other: types.AWORMap<types.SquareId, types.Square>) => {
+                const other_ptr = serializeObject(other);
+                return parseObject<types.AWORMap<types.SquareId, types.Square>>(export_fn(other_ptr));
+            };
+        })(),
+        mergeDeltas: (() => {
+            const export_fn = instance.exports.__fp_gen_merge_deltas as any;
             if (!export_fn) return;
 
             return (delta: Deltas<SquareId, Square>) => {

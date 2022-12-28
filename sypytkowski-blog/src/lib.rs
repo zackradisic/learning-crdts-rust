@@ -8,16 +8,20 @@ use fp_bindgen::prelude::Serializable;
 pub mod delta_state;
 pub mod state;
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-#[cfg_attr(
-    feature = "wasm",
-    derive(
-        fp_bindgen::prelude::Serializable,
-        serde_derive::Serialize,
-        serde_derive::Deserialize
-    )
+#[derive(
+    Copy,
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Default,
+    fp_bindgen::prelude::Serializable,
+    serde_derive::Serialize,
+    serde_derive::Deserialize,
 )]
-#[cfg_attr(feature = "wasm", fp(rust_plugin_module = "sypytkowski_blog"))]
+#[fp(rust_plugin_module = "sypytkowski_blog")]
 pub struct ReplicaId(u64);
 
 impl From<u64> for ReplicaId {
@@ -42,12 +46,6 @@ impl ReplicaGenerator {
     }
 }
 
-/// Intermediate trait to make it easier to serialize types for Wasm
-#[cfg(not(feature = "wasm"))]
-pub trait Value {}
-
-/// Intermediate trait to make it easier to serialize types for Wasm
-#[cfg(feature = "wasm")]
 pub trait Value: fp_bindgen::prelude::Serializable {}
 
 macro_rules! impl_value {

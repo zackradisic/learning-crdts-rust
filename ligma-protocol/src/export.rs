@@ -9,7 +9,10 @@ pub fn deltas() -> Deltas<SquareId, Square>;
 pub fn get() -> AWORMap<SquareId, Square>;
 
 #[fp_bindgen_support::fp_export_signature]
-pub fn merge(delta: Deltas<SquareId, Square>);
+pub fn merge(other: AWORMap<SquareId, Square>) -> AWORMap<SquareId, Square>;
+
+#[fp_bindgen_support::fp_export_signature]
+pub fn merge_deltas(delta: Deltas<SquareId, Square>);
 
 #[fp_bindgen_support::fp_export_signature]
 pub fn replace(map: AWORMap<SquareId, Square>);

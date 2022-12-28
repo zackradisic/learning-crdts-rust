@@ -3,15 +3,14 @@ use fp_bindgen::types::CargoDependency;
 use fp_bindgen::{prelude::Serializable, TsExtendedRuntimeConfig};
 use serde::{Deserialize, Serialize};
 use sypytkowski_blog::delta_state::awormap::{AWORMap, Deltas};
-use sypytkowski_blog::delta_state::dot::Dot;
 use sypytkowski_blog::{ReplicaId, Value};
 
 #[derive(Debug, Clone, PartialEq, Default, Serializable, Serialize, Deserialize)]
 pub struct Square {
-    pub x: i32,
-    pub y: i32,
-    pub width: i32,
-    pub height: i32,
+    pub x: f32,
+    pub y: f32,
+    pub width: f32,
+    pub height: f32,
 }
 #[derive(
     Debug, Clone, PartialEq, Default, Serializable, Serialize, Deserialize, Eq, PartialOrd, Ord,
@@ -28,7 +27,8 @@ fp_import! {
 fp_export! {
     fn get() -> AWORMap<SquareId, Square>;
     fn set(replica: ReplicaId, id: SquareId, square: Square);
-    fn merge(delta: Deltas<SquareId, Square>);
+    fn merge_deltas(delta: Deltas<SquareId, Square>);
+    fn merge(other: AWORMap<SquareId, Square>) -> AWORMap<SquareId, Square>;
     fn deltas() -> Deltas<SquareId, Square>;
     fn replace(map: AWORMap<SquareId, Square>);
 }
