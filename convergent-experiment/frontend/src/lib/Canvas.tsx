@@ -108,6 +108,10 @@ const Square = ({ id, square, svg: svgRef }: Props) => {
           e.preventDefault();
           e.stopPropagation();
         }}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          Interactions.removeSquare(parseInt(id));
+        }}
         className="rounded-lg bg-red-400"
         rx={3}
         x={square.x}

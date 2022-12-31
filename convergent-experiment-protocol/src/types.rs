@@ -1,13 +1,13 @@
 #![allow(unused_imports)]
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, collections::BTreeSet};
-use sypytkowski_blog::Value;
+use sypytkowski_convergent::Value;
 
-pub use sypytkowski_blog::delta_state::awormap::AWORMap;
-pub use sypytkowski_blog::delta_state::awormap::KeyVal;
-pub use sypytkowski_blog::delta_state::dot::Dot;
-pub use sypytkowski_blog::delta_state::dot::VectorClock;
-pub use sypytkowski_blog::ReplicaId;
+pub use sypytkowski_convergent::delta_state::awormap::AWORMap;
+pub use sypytkowski_convergent::delta_state::awormap::KeyVal;
+pub use sypytkowski_convergent::delta_state::dot::Dot;
+pub use sypytkowski_convergent::delta_state::dot::VectorClock;
+pub use sypytkowski_convergent::ReplicaId;
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct AWORSet<V: Clone + PartialEq + Default + Value> {

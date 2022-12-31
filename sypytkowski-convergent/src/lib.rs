@@ -21,7 +21,7 @@ pub mod state;
     serde_derive::Serialize,
     serde_derive::Deserialize,
 )]
-#[fp(rust_plugin_module = "sypytkowski_blog")]
+#[fp(rust_plugin_module = "sypytkowski_convergent")]
 pub struct ReplicaId(u64);
 
 impl From<u64> for ReplicaId {

@@ -1,6 +1,9 @@
-use sypytkowski_blog::delta_state::awormap::Deltas;
+use sypytkowski_convergent::delta_state::awormap::Deltas;
 
 use crate::types::*;
+
+#[fp_bindgen_support::fp_export_signature]
+pub fn del(replica: ReplicaId, id: SquareId);
 
 #[fp_bindgen_support::fp_export_signature]
 pub fn deltas() -> Deltas<SquareId, Square>;

@@ -1,4 +1,5 @@
 import { type NextPage } from "next";
+import shallow from "zustand/shallow";
 import Head from "next/head";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -8,11 +9,19 @@ import { Square } from "../lib/proto/types";
 import { useAppState } from "../lib/state";
 import { createRuntime } from "../lib/wasm";
 import { useWebsocketStore } from "../lib/ws";
+import { prettyClientBound } from "../lib/rpc";
 
 let ran = false;
 const Home: NextPage = () => {
   const [replicaId, setReplicaId] = useState<number | undefined>(undefined);
   const { state, actions } = useWebsocketStore();
+  const { prevClientMsg, prevServerMsg } = useAppState(
+    (state) => ({
+      prevClientMsg: state.prevClientMsg,
+      prevServerMsg: state.prevServerMsg,
+    }),
+    shallow
+  );
 
   useEffect(() => {
     if (replicaId === undefined) return;
@@ -46,7 +55,7 @@ const Home: NextPage = () => {
   }, [replicaId]);
 
   return (
-    <div className="h-screen w-full bg-[#2c2c2c] text-[#b4b4b4]">
+    <div className="h-screen w-full bg-[#2c2c2c] font-mono text-[#b4b4b4]">
       <div className="p-4">
         <div className="mb-2 flex flex-row items-baseline text-[#b4b4b4]">
           <p>Agent ID:</p>
@@ -81,6 +90,21 @@ const Home: NextPage = () => {
               ? "Connecting"
               : "Enter ID"}
           </button>
+        </div>
+
+        <div className="mb-2 flex flex-col items-baseline text-[#b4b4b4]">
+          <p>
+            Status:{" "}
+            <span className="text-white">
+              {state.kind === "connected" ? "Connected" : "Disconnected"}
+            </span>
+          </p>
+          <p className="truncate">
+            Last remote change:{" "}
+            <span className="text-xs text-white">
+              {prevClientMsg ? prettyClientBound(prevClientMsg) : ""}
+            </span>
+          </p>
         </div>
       </div>
 

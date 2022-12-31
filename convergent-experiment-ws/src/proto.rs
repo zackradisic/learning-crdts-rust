@@ -1,6 +1,6 @@
 use convergent_experiment_protocol::{ReplicaId, Square, SquareId};
 use serde::{Deserialize, Serialize};
-use sypytkowski_blog::delta_state::awormap::{AWORMap, Deltas};
+use sypytkowski_convergent::delta_state::awormap::{AWORMap, Deltas};
 use tungstenite::Message;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

@@ -8,6 +8,6 @@ edition = "2018"
 fp-bindgen-support = { version = "2.4.0", features = ["guest"] }
 once_cell = { version = "1.4" }
 rmp-serde = { version = "1.0" }
-serde = { version = "1", features = ["derive"] }
-sypytkowski-blog = { path = "../sypytkowski-blog", features = ["wasm"] }
+serde = { version = "1.0", features = ["derive"] }
+sypytkowski-convergent = { path = "../sypytkowski-convergent", features = ["wasm"] }
 fp-bindgen = {version="2.4.0"}

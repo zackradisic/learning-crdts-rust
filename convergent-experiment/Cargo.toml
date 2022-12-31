@@ -11,4 +11,4 @@ crate-type = ["cdylib"]
 [dependencies]
 convergent-experiment-protocol = { path = "../convergent-experiment-protocol" }
 once_cell = "1.16.0"
-sypytkowski-blog = { path = "../sypytkowski-blog", features = ["wasm"] }
+sypytkowski-convergent = { path = "../sypytkowski-convergent", features = ["wasm"] }

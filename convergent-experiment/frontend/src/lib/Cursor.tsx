@@ -2,12 +2,14 @@ import { useAppState } from "./state";
 
 const Cursors = () => {
   const cursors = useAppState((state) => state.cursors);
+  const userId = useAppState((state) => state.ready && state.replicaId + "");
+  if (userId === false) return <></>;
 
   return (
     <>
-      {Object.entries(cursors).map(([id, [x, y]]) => (
-        <Cursor id={id + ""} x={x} y={y} key={id} />
-      ))}
+      {Object.entries(cursors).map(([id, [x, y]]) =>
+        userId !== id ? <Cursor id={id + ""} x={x} y={y} key={id} /> : <></>
+      )}
     </>
   );
 };
@@ -24,7 +26,7 @@ const Cursor = ({ id, x, y }: Props) => {
       x={x}
       y={y}
       //   style={{ transform: `translate(${x}px, ${y}px)` }}
-      className="cursor "
+      className={`cursor ${id}`}
       stroke="red"
       width="16"
       height="20"

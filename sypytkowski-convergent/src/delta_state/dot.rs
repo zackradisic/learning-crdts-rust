@@ -31,7 +31,7 @@ use crate::{ReplicaId, Value};
 pub struct VectorClockDeserializer(BTreeMap<String, u64>);
 
 #[derive(Debug, Clone, PartialEq, fp_bindgen::prelude::Serializable)]
-#[fp(rust_plugin_module = "sypytkowski_blog::delta_state::dot")]
+#[fp(rust_plugin_module = "sypytkowski_convergent::delta_state::dot")]
 pub struct VectorClock(pub BTreeMap<ReplicaId, u64>);
 
 impl Default for VectorClock {
@@ -90,7 +90,7 @@ impl<'de> Deserialize<'de> for VectorClock {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, fp_bindgen::prelude::Serializable)]
-#[fp(rust_plugin_module = "sypytkowski_blog::delta_state::dot")]
+#[fp(rust_plugin_module = "sypytkowski_convergent::delta_state::dot")]
 pub struct Dot(pub ReplicaId, pub u64);
 
 impl serde::Serialize for Dot {

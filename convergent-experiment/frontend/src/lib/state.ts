@@ -7,17 +7,23 @@ import type {
   SquareId,
 } from "./proto/types";
 import create from "zustand";
+import { ClientBound, ServerBound } from "./rpc";
 
 type Base = {
   squares: Record<SquareId, Square>;
   cursors: Record<ReplicaId, [x: number, y: number]>;
+  prevClientMsg?: ClientBound;
+  prevServerMsg?: ServerBound;
 };
 
 type Actions = {
   setReady: (wasm: WasmRuntime, replicaId: ReplicaId) => void;
   deltas: () => Deltas<SquareId, Square>;
+  setPrevClientMsg: (msg: ClientBound) => void;
+  setPrevServerMsg: (msg: ServerBound) => void;
   local: {
     setSquare: (id: SquareId, square: Square) => void;
+    deleteSquare: (id: SquareId) => void;
   };
   remote: {
     merge: (state: AWORMap<SquareId, Square>) => void;
@@ -41,6 +47,16 @@ export const useAppState = create<AppState>((set, get) => ({
   ready: false,
   squares: {},
   cursors: {},
+  prevClientMsg: undefined,
+  prevServerMsg: undefined,
+  setPrevClientMsg(msg) {
+    set({
+      prevClientMsg: msg,
+    });
+  },
+  setPrevServerMsg(msg) {
+    set({ prevServerMsg: msg });
+  },
   deltas() {
     const state = get();
     if (!state.ready) {
@@ -75,6 +91,15 @@ export const useAppState = create<AppState>((set, get) => ({
       set({
         squares: { ...state.squares, [id]: square },
       });
+    },
+    deleteSquare(id) {
+      const state = get();
+      if (!state.ready) throw new Error("Not ready");
+
+      state.wasm.del!(state.replicaId, id);
+      delete state.squares[id];
+
+      set({ squares: { ...state.squares } });
     },
   },
   remote: {

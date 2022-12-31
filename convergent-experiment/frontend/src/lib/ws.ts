@@ -113,8 +113,10 @@ export const useWebsocketStore = create<WebsocketMachine, Actions>(
           const arrayBuf = await e.data.arrayBuffer();
           const clientBound = decodeClientBound(arrayBuf);
 
-          if (clientBound.type !== "cursor")
+          if (clientBound.type !== "cursor") {
             console.log("Client bound message", clientBound);
+            useAppState.getState().setPrevClientMsg(clientBound);
+          }
 
           switch (clientBound.type) {
             case "sync": {

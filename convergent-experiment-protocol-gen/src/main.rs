@@ -2,8 +2,8 @@ use fp_bindgen::prelude::*;
 use fp_bindgen::types::CargoDependency;
 use fp_bindgen::{prelude::Serializable, TsExtendedRuntimeConfig};
 use serde::{Deserialize, Serialize};
-use sypytkowski_blog::delta_state::awormap::{AWORMap, Deltas};
-use sypytkowski_blog::{ReplicaId, Value};
+use sypytkowski_convergent::delta_state::awormap::{AWORMap, Deltas};
+use sypytkowski_convergent::{ReplicaId, Value};
 
 #[derive(Debug, Clone, PartialEq, Default, Serializable, Serialize, Deserialize)]
 pub struct Square {
@@ -27,6 +27,7 @@ fp_import! {
 fp_export! {
     fn get() -> AWORMap<SquareId, Square>;
     fn set(replica: ReplicaId, id: SquareId, square: Square);
+    fn del(replica: ReplicaId, id: SquareId);
     fn merge_deltas(delta: Deltas<SquareId, Square>);
     fn merge(other: AWORMap<SquareId, Square>) -> AWORMap<SquareId, Square>;
     fn deltas() -> Deltas<SquareId, Square>;
@@ -41,9 +42,9 @@ fn main() {
                 authors: "[\"zackoverflow\"]",
                 version: "0.0.1",
                 dependencies: [(
-                    "sypytkowski-blog",
+                    "sypytkowski-convergent",
                     CargoDependency {
-                        path: Some("../sypytkowski-blog"),
+                        path: Some("../sypytkowski-convergent"),
                         features: ["wasm"].into(),
                         ..Default::default()
                     },

@@ -21,3 +21,14 @@ export const updateCursor = (x: number, y: number) => {
   }
   useWebsocketStore.actions.send(state, { type: "cursor", pos: [x, y] });
 };
+
+export const removeSquare = (id: SquareId) => {
+  useAppState.getState().local.deleteSquare(id);
+  const state = useWebsocketStore.getState();
+  if (state.kind !== "connected") {
+    console.error("Websocket not connected");
+    return;
+  }
+  const deltas = useAppState.getState().deltas();
+  useWebsocketStore.actions.send(state, { type: "update", deltas });
+};

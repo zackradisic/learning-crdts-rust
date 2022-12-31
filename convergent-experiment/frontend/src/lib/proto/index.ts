@@ -16,6 +16,7 @@ export type Imports = {
 };
 
 export type Exports = {
+    del?: (replica: types.ReplicaId, id: types.SquareId) => void;
     deltas?: () => Deltas<SquareId, Square>;
     get?: () => types.AWORMap<types.SquareId, types.Square>;
     merge?: (other: types.AWORMap<types.SquareId, types.Square>) => types.AWORMap<types.SquareId, types.Square>;
@@ -159,6 +160,16 @@ export async function createRuntime(
     const free = getExport<(ptr: FatPtr) => void>("__fp_free");
 
     return {
+        del: (() => {
+            const export_fn = instance.exports.__fp_gen_del as any;
+            if (!export_fn) return;
+
+            return (replica: types.ReplicaId, id: types.SquareId) => {
+                const replica_ptr = serializeObject(replica);
+                const id_ptr = serializeObject(id);
+                export_fn(replica_ptr, id_ptr);
+            };
+        })(),
         deltas: (() => {
             const export_fn = instance.exports.__fp_gen_deltas as any;
             if (!export_fn) return;

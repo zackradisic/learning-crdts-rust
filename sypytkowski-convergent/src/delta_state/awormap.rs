@@ -22,7 +22,7 @@ pub type Deltas<K, V> = DotKernel<KeyVal<K, V>>;
     fp_bindgen::prelude::Serializable,
     serde_derive::Deserialize,
 )]
-#[fp(rust_plugin_module = "sypytkowski_blog::delta_state::awormap")]
+#[fp(rust_plugin_module = "sypytkowski_convergent::delta_state::awormap")]
 pub struct AWORMap<
     K: Clone + PartialEq + Default + Debug + Ord + Value,
     V: Value + Clone + Default + Debug,
@@ -97,7 +97,7 @@ where
 /// Key-value pair so it can implement Serializable, note that
 /// it also implements PartialEq but only compares keys
 #[derive(Clone, Debug, Default, fp_bindgen::prelude::Serializable)]
-#[fp(rust_plugin_module = "sypytkowski_blog::delta_state::awormap")]
+#[fp(rust_plugin_module = "sypytkowski_convergent::delta_state::awormap")]
 pub struct KeyVal<K: Clone + PartialEq + Default + Debug + Ord + Value, V: Value + Default + Debug>
 {
     key: K,

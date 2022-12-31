@@ -2,7 +2,7 @@ use std::{cell::RefCell, panic};
 
 use convergent_experiment_protocol::*;
 use once_cell::sync::Lazy;
-use sypytkowski_blog::delta_state::awormap::{AWORMap, Deltas};
+use sypytkowski_convergent::delta_state::awormap::{AWORMap, Deltas};
 
 // We maintain the global state in a mutable static so that we do not need to pass it from
 // JavaScript every time we call the reducer. This avoids significant serialization overhead we
@@ -61,9 +61,15 @@ fn merge_deltas(delta: Deltas<SquareId, Square>) {
 }
 
 #[fp_export_impl(convergent_experiment_protocol)]
-fn set(replica: sypytkowski_blog::ReplicaId, id: SquareId, square: Square) {
+fn set(replica: sypytkowski_convergent::ReplicaId, id: SquareId, square: Square) {
     let state = unsafe { STATE.get_mut() };
     state.insert(replica, id, square);
+}
+
+#[fp_export_impl(convergent_experiment_protocol)]
+fn del(replica: sypytkowski_convergent::ReplicaId, id: SquareId) {
+    let state = unsafe { STATE.get_mut() };
+    state.remove(replica, id)
 }
 
 #[fp_export_impl(convergent_experiment_protocol)]

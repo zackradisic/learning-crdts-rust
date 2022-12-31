@@ -14,7 +14,7 @@ use tungstenite::Message;
 use std::sync::{atomic::AtomicU64, Arc};
 
 use convergent_experiment_protocol::{ReplicaId, Square, SquareId};
-use sypytkowski_blog::delta_state::awormap::{AWORMap, Deltas};
+use sypytkowski_convergent::delta_state::awormap::{AWORMap, Deltas};
 use tokio::{
     net::{TcpListener, TcpStream},
     sync::{Mutex, RwLock},
@@ -41,7 +41,14 @@ impl Ctx {
     }
 
     async fn add_connection(&self, client: Client) {
-        self.connections.write().await.push(client);
+        let mut connections = self.connections.write().await;
+        let idx = connections
+            .iter()
+            .enumerate()
+            .find(|(_, c)| c.id == client.id)
+            .map(|(i, _)| i)
+            .unwrap_or(connections.len());
+        connections.insert(idx, client);
     }
 
     async fn broadcast_cursors(&self, replica: ReplicaId) {
