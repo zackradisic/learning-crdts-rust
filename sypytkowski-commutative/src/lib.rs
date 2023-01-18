@@ -6,6 +6,7 @@ pub mod protocol;
 
 pub mod counter;
 pub mod lwwreg;
+pub mod mvreg;
 
 use futures::{future::BoxFuture, stream::FuturesOrdered, StreamExt};
 use protocol::{self as proto, Protocol};
@@ -34,8 +35,8 @@ impl<T: Clone + Default + Send + Sync + std::fmt::Debug> EventData for T {}
 
 pub trait Crdt: Clone + Send + Sync {
     type State;
-    type EData: EventData;
     type Cmd: std::fmt::Debug;
+    type EData: EventData;
 
     fn query(&self) -> Self::State;
     fn prepare(&self, op: Self::Cmd) -> Self::EData;
