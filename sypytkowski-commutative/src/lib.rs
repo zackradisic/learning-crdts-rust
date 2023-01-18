@@ -1,9 +1,11 @@
 #![feature(option_get_or_insert_default)]
 #![feature(btree_drain_filter)]
 
-pub mod counter;
 pub mod memdb;
 pub mod protocol;
+
+pub mod counter;
+pub mod lwwreg;
 
 use futures::{future::BoxFuture, stream::FuturesOrdered, StreamExt};
 use protocol::{self as proto, Protocol};
@@ -30,8 +32,8 @@ pub trait Store<C: Crdt> {
 pub trait EventData: Clone + Default + Send + Sync + std::fmt::Debug {}
 impl<T: Clone + Default + Send + Sync + std::fmt::Debug> EventData for T {}
 
-pub trait Crdt: Default + Clone + Send + Sync {
-    type State: Default;
+pub trait Crdt: Clone + Send + Sync {
+    type State;
     type EData: EventData;
     type Cmd: std::fmt::Debug;
 
@@ -90,12 +92,14 @@ where
     C: Crdt,
     Db: Store<C>,
 {
-    pub async fn new(id: ReplicaId, mut store: Db) -> Self {
+    pub async fn new(id: ReplicaId, crdt: C, mut store: Db) -> Self {
         let snapshot = store.load_snapshot().await;
         let mut state = snapshot.unwrap_or(ReplicationState {
             id,
-            crdt: C::default(),
-            ..Default::default()
+            crdt,
+            seq: 0,
+            version: Default::default(),
+            observed: Default::default(),
         });
 
         while let Some(event) = store.load_events(state.seq + 1).await.next().await {

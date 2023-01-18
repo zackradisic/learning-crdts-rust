@@ -36,8 +36,14 @@ mod test {
     async fn commutativity() {
         let alice_id = ReplicaId(0);
         let bob_id = ReplicaId(1);
-        let mut alice = Replicator::new(alice_id, InMemoryDb::<Counter>::default()).await;
-        let mut bob = Replicator::new(bob_id, InMemoryDb::<Counter>::default()).await;
+        let mut alice = Replicator::new(
+            alice_id,
+            Counter::default(),
+            InMemoryDb::<Counter>::default(),
+        )
+        .await;
+        let mut bob =
+            Replicator::new(bob_id, Counter::default(), InMemoryDb::<Counter>::default()).await;
 
         let _ = alice.send(Protocol::Command(34)).await;
         let _ = bob.send(Protocol::Command(35)).await;
