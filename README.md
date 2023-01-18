@@ -30,3 +30,7 @@ cp target/wasm32-unknown-unknown/release/convergent_experiment.wasm convergent-e
 # Run the WS server
 cargo run --package convergent-experiment-ws
 ```
+
+### [sypytkowski-commutative/](/sypytkowski-commutative)
+
+This is the code for the operation-based half of Sypytkowski's article series.
