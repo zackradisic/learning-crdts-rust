@@ -1,0 +1,31 @@
+#+title: Reliable Causal Broadcast notes
+
+Had trouble deriving the logic on how the reliable causal broadcast system worked in the original F# + Akka.net code so here are some notes:
+
+* =Connect= message flow
+1. Alice receives =Connect= message to connect to Bob
+   1. Alice sends =Replicate= message containing:
+      a. the last sequence number she observed from Bob (Bob's entry in the =observed= map) plus one
+      b. her vector clock
+      c. max amount of events to replicate, default is =100=
+   2. Alice adds Bob to her =replicatingNodes= map and schedules a timeout (explained later)
+2. Bob receives =Replicate= message:
+   1. he loads all events stored locally where the local seq nr is >= than the one supplied by Alice
+   2. he then iterates through these events adding them to a list
+      1. for each event, if the vector clock on the event is greater or concurrent with Alice's vector clock, add it to a list (basically if Alice hasn't seen it then add it to list)
+      2. stop once we've added more than the max amount Alice said she wanted
+      3. additionally, keep track of the last local sequence number seen while iterating (this is basically a cursor to continue the replication)
+   3. reply with =Replicated= message containing:
+      a. last local sequence number seen while iterating
+      b. list of the events
+3. Alice receives =Replicated= message:
+   1. "for all events not seen by the current node, rewrite them to use local sequence nr, update the state and save them in the database"
+   2. then Alice will send the =Replicate= message again (causing a loop basically), with the last local sequence number from the =Replicated= message incremented by one and the new resultant vector clock from merging
+4. Steps 1-3 repeat until Bob sends a =Replicated= message with an empty list of events
+   Then Alice just increments the observed sequence number of Bob one last time and is done
+* How syncing works
+In the =Connect= message in step 1 Alice adds Bob to her =replicatingNodes= map and schedules a timeout that calls the =ReplicateTimeout= message with Bob's id.
+
+When =ReplicateTimeout= message is handled it sends Bob =Replicate= and schedules itself again.
+
+This is how changes are synced basically, just a timer that synces the events.
