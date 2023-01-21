@@ -49,7 +49,7 @@ mod test {
     };
 
     #[tokio::test]
-    async fn commutativity() {
+    async fn test() {
         type Crdt<'a> = MVRegister<&'a str>;
 
         let alice_id = ReplicaId(0);

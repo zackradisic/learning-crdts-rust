@@ -71,7 +71,7 @@ mod test {
     };
 
     #[tokio::test]
-    async fn commutativity() {
+    async fn test() {
         type LWW<'a> = LWWRegister<&'a str>;
 
         let alice_id = ReplicaId(0);

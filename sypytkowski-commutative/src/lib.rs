@@ -1,5 +1,6 @@
 #![feature(option_get_or_insert_default)]
 #![feature(btree_drain_filter)]
+#![feature(hash_drain_filter)]
 
 pub mod memdb;
 pub mod protocol;
@@ -7,6 +8,7 @@ pub mod protocol;
 pub mod counter;
 pub mod lwwreg;
 pub mod mvreg;
+pub mod orset;
 
 use futures::{future::BoxFuture, stream::FuturesOrdered, StreamExt};
 use protocol::{self as proto, Protocol};
@@ -30,8 +32,8 @@ pub trait Store<C: Crdt> {
     async fn save_events<I: Iterator<Item = Event<C::EData>> + Send>(&mut self, events: I);
 }
 
-pub trait EventData: Clone + Default + Send + Sync + std::fmt::Debug {}
-impl<T: Clone + Default + Send + Sync + std::fmt::Debug> EventData for T {}
+pub trait EventData: Clone + Send + Sync + std::fmt::Debug {}
+impl<T: Clone + Send + Sync + std::fmt::Debug> EventData for T {}
 
 pub trait Crdt: Clone + Send + Sync {
     type State;
@@ -46,9 +48,9 @@ pub trait Crdt: Clone + Send + Sync {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct ReplicaId(u64);
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Hash)]
 pub struct VTime {
-    map: BTreeMap<ReplicaId, u64>,
+    pub map: BTreeMap<ReplicaId, u64>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
