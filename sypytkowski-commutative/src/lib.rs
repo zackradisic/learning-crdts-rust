@@ -6,6 +6,7 @@ pub mod memdb;
 pub mod protocol;
 
 pub mod counter;
+pub mod lseq;
 pub mod lwwreg;
 pub mod mvreg;
 pub mod orset;
