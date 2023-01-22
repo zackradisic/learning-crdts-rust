@@ -10,6 +10,7 @@ pub mod lseq;
 pub mod lwwreg;
 pub mod mvreg;
 pub mod orset;
+pub mod rga;
 
 use futures::{future::BoxFuture, stream::FuturesOrdered, StreamExt};
 use protocol::{self as proto, Protocol};

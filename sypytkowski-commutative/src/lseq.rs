@@ -154,8 +154,6 @@ impl VPtr {
 #[cfg(test)]
 mod test {
 
-    use std::collections::HashSet;
-
     use crate::{
         lseq::{Command, LSeq},
         memdb::InMemoryDb,
